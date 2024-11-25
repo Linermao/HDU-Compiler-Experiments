@@ -16,3 +16,4 @@ user/usys.S
 .gdbinit
 .cache/
 .vscode/
+.DS_Store
