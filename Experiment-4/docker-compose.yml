@@ -1,0 +1,8 @@
+services:
+  compiler:
+    image: maxxing/compiler-dev
+    volumes:
+      - /home/alvin/Investigation/HDU-Compilation-principle-experiments:/root/compiler
+    stdin_open: true
+    tty: true
+    entrypoint: ["bash"]
