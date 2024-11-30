@@ -80,21 +80,69 @@ class BlockItemAST : public BaseAST
   }
 };
 
-// Exp ::= UnaryExp;
+// Exp ::= UnaryExp | AddExp;
 
 class ExpAST : public BaseAST
 {
   public:
     std::unique_ptr<BaseAST> unary_exp;
+    std::unique_ptr<BaseAST> add_exp;
   void Dump() const override {
     std::cout << "ExpAST { ";
-    unary_exp->Dump();
+    if (unary_exp){
+      unary_exp->Dump();
+    }
+    if (add_exp) {
+      add_exp->Dump();
+    }
+    std::cout << " }";
+  }
+};
+
+// AddExp ::= MulExp | AddExp ( '+' | '-') MulExp;
+class AddExpAST : public BaseAST
+{
+  public:
+    std::unique_ptr<BaseAST> add_exp;
+    std::string add_op;
+    std::unique_ptr<BaseAST> mul_exp;
+  void Dump() const override {
+    std::cout << "AddExpAST { ";
+    if (add_exp){      
+        add_exp->Dump();
+        std::cout << "UnaryOp { " + add_op + " } ";
+        mul_exp->Dump();
+    }
+    else if (mul_exp){
+      mul_exp->Dump();
+    }
+    
+    std::cout << " }";
+  }
+};
+
+// MulExp ::= UnaryExp | MulExp ( '*' | '/' | '%' ) UnaryExp;
+class MulExpAST : public BaseAST
+{
+  public:
+    std::unique_ptr<BaseAST> mul_exp;
+    std::string mul_op;
+    std::unique_ptr<BaseAST> unary_exp;
+  void Dump() const override {
+    std::cout << "MulExpAST { ";
+    if (mul_exp){
+      mul_exp->Dump();
+      std::cout << "UnaryOp { " + mul_op + " } ";
+      unary_exp->Dump();
+    }
+    else if(unary_exp){
+      unary_exp->Dump();
+    }
     std::cout << " }";
   }
 };
 
 // PrimaryExp ::= "(" Exp ")" | Number;
-
 class PrimaryExpAST : public BaseAST
 {
   public:
@@ -113,7 +161,6 @@ class PrimaryExpAST : public BaseAST
 };
 
 // UnaryExp ::= PrimaryExp | UnaryOp UnaryExp;
-
 class UnaryExpAST : public BaseAST
 {
   public:
