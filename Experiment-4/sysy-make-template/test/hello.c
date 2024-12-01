@@ -1,4 +1,5 @@
 
 int main() {
-  return 1 + 2 * 3;
+  const int x = 1;
+  return x;
 }

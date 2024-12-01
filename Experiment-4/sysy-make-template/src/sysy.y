@@ -38,12 +38,11 @@ using namespace std;
 
 // lexer 返回的所有 token 种类的声明
 // 注意 IDENT 和 INT_CONST 会返回 token 的值, 分别对应 str_val 和 int_val
-%token INT RETURN CONST VOID LE GE EQ NE AND OR IF THEN ELSE WHILE CONTINUE BREAK
-%token <str_val> IDENT
+%token <str_val> IDENT INT RETURN CONST VOID LE GE EQ NE AND OR IF THEN ELSE WHILE CONTINUE BREAK
 %token <int_val> INT_CONST
 
 // 非终结符的类型定义
-%type <ast_val> FuncDef FuncType Block BlockItem Number Exp PrimaryExp UnaryExp AddExp MulExp
+%type <ast_val> FuncDef FuncType Block Stmt BlockItem Number Exp PrimaryExp UnaryExp AddExp MulExp RelExp EqExp LAndExp LOrExp Decl ConstDecl BType ConstDef ConstInitVal LVal ConstExp
 %type <str_val> UnaryOp
 
 %%
@@ -99,14 +98,102 @@ Block
   ;
 
 BlockItem
-  : RETURN Number ';' {
+  : Decl {
     auto ast = new BlockItemAST();
+    ast->decl = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | Stmt {
+    auto ast = new BlockItemAST();
+    ast->stmt = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | Decl BlockItem{
+    auto ast = new BlockItemAST();
+    ast->decl = unique_ptr<BaseAST>($1);
+    ast->block_item = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  | Stmt BlockItem{
+    auto ast = new BlockItemAST();
+    ast->stmt = unique_ptr<BaseAST>($1);
+    ast->block_item = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  ;
+
+Stmt
+  : RETURN Number ';' {
+    auto ast = new StmtAST();
     ast->number = unique_ptr<BaseAST>($2);
     $$ = ast;
   }
   | RETURN Exp ';' {
-    auto ast = new BlockItemAST();
+    auto ast = new StmtAST();
     ast->exp = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  ;
+
+Decl
+  : ConstDecl {
+    auto ast = new DeclAST();
+    ast->const_decl = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  ;
+
+ConstDecl
+  : CONST BType ConstDef ';'{
+    auto ast = new ConstDeclAST();
+    ast->b_type = unique_ptr<BaseAST>($2);
+    ast->const_def = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+
+BType
+  : INT {
+    auto ast = new BTypeAST();
+    ast->type = *unique_ptr<string>(new string("int"));
+    $$ = ast;
+  }
+
+ConstDef
+  : IDENT '=' ConstInitVal {
+    auto ast = new ConstDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->const_init_val = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  | IDENT '=' ConstInitVal ',' ConstDef {
+    auto ast = new ConstDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->const_init_val = unique_ptr<BaseAST>($3);
+    ast->const_def = unique_ptr<BaseAST>($5);
+    $$ = ast;
+  }
+  ;
+
+ConstInitVal
+  : ConstExp {
+    auto ast = new ConstInitValAST();
+    ast->const_exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  ;
+
+ConstExp
+  : Exp {
+    auto ast = new ConstExpAST();
+    ast->exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  ;
+
+LVal
+  : IDENT {
+    auto ast = new LValAST();
+    ast->ident = *unique_ptr<string>($1);
     $$ = ast;
   }
   ;
@@ -120,6 +207,11 @@ Exp
   | AddExp {
     auto ast = new ExpAST();
     ast->add_exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | LOrExp {
+    auto ast = new ExpAST();
+    ast->l_or_exp = unique_ptr<BaseAST>($1);
     $$ = ast;
   }
   ;
@@ -175,6 +267,98 @@ MulExp
   }
   ;
 
+// RelExp ::= AddExp | RelExp ( "<" | ">" | "<=" | ">=" ) AddExp;
+RelExp
+  : AddExp {
+    auto ast = new RelExpAST();
+    ast->add_exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | RelExp '<' AddExp {
+    auto ast = new RelExpAST();
+    ast->rel_exp = unique_ptr<BaseAST>($1);
+    ast->rel_op = *unique_ptr<string>(new string("<"));
+    ast->add_exp = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  | RelExp '>' AddExp {
+    auto ast = new RelExpAST();
+    ast->rel_exp = unique_ptr<BaseAST>($1);
+    ast->rel_op = *unique_ptr<string>(new string(">"));
+    ast->add_exp = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  | RelExp LE AddExp {
+    auto ast = new RelExpAST();
+    ast->rel_exp = unique_ptr<BaseAST>($1);
+    ast->rel_op = *unique_ptr<string>(new string("<="));
+    ast->add_exp = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  | RelExp GE AddExp {
+    auto ast = new RelExpAST();
+    ast->rel_exp = unique_ptr<BaseAST>($1);
+    ast->rel_op = *unique_ptr<string>(new string(">="));
+    ast->add_exp = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  ;
+
+// EqExp ::= RelExp | EqExp ( "==" | "!=" ) RelExp;
+EqExp
+  : RelExp {
+    auto ast = new EqExpAST();
+    ast->rel_exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | EqExp EQ RelExp {
+    auto ast = new EqExpAST();
+    ast->eq_exp = unique_ptr<BaseAST>($1);
+    ast->eq_op = *unique_ptr<string>($2);
+    ast->rel_exp = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  | EqExp NE RelExp {
+    auto ast = new EqExpAST();
+    ast->eq_exp = unique_ptr<BaseAST>($1);
+    ast->eq_op = *unique_ptr<string>($2);
+    ast->rel_exp = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  ;
+
+// LAndExp ::= EqExp | LAndExp "&&" EqExp;
+LAndExp
+  : EqExp {
+    auto ast = new LAndExpAST();
+    ast->eq_exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | LAndExp AND EqExp {
+    auto ast = new LAndExpAST();
+    ast->l_and_exp = unique_ptr<BaseAST>($1);
+    ast->l_and_op = *unique_ptr<string>($2);
+    ast->eq_exp = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  ;
+
+// LOrExp ::= LAndExp | LOrExp "||" LAndExp;
+LOrExp
+  : LAndExp {
+    auto ast = new LOrExpAST();
+    ast->l_and_exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | LOrExp OR LAndExp {
+    auto ast = new LOrExpAST();
+    ast->l_or_exp = unique_ptr<BaseAST>($1);
+    ast->l_or_op = *unique_ptr<string>($2);
+    ast->l_and_exp = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  ;
+
 PrimaryExp
   : '(' Exp ')' {
     auto ast = new PrimaryExpAST();
@@ -184,6 +368,11 @@ PrimaryExp
   | Number {
     auto ast = new PrimaryExpAST();
     ast->number = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | LVal {
+    auto ast = new PrimaryExpAST();
+    ast->l_val = unique_ptr<BaseAST>($1);
     $$ = ast;
   }
   ;
