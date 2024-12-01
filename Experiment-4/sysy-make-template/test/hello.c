@@ -1,8 +1,10 @@
 
 int main() {
-  int x = 1, y=2;
-  {
-    int x = 2;
+  int a = 2;
+  if (a) {
+    a = a+1;
+  }else {
+    a =0;  
   }
-  return x;
+  return a;
 }

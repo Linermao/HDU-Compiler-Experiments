@@ -91,6 +91,7 @@ class BlockItemAST : public BaseAST
           | [Exp] ';' 
           | Block 
           | "return" [Exp] ';'
+          | "if" '(' Exp ')' Stmt [ "else" Stmt ] 
 */
 class StmtAST : public BaseAST
 {
@@ -98,16 +99,24 @@ class StmtAST : public BaseAST
     std::unique_ptr<BaseAST> exp;
     std::unique_ptr<BaseAST> l_val;
     std::unique_ptr<BaseAST> block;
+    std::unique_ptr<BaseAST> stmt_1;
+    std::unique_ptr<BaseAST> stmt_2;
   void Dump() const override {
     std::cout << "StmtAST { ";
-    if (l_val){
+    if (l_val && exp){
       l_val->Dump();
       exp->Dump();
+    }else if (block){
+      block->Dump();
+    }else if (exp && stmt_1 && stmt_2){
+      exp->Dump();
+      stmt_1->Dump();
+      stmt_2->Dump();
+    }else if (exp && stmt_1){
+      exp->Dump();
+      stmt_1->Dump();
     }else if (exp){
       exp->Dump();
-    }    
-    if (block){
-      block->Dump();
     }
     std::cout << " }";
   }
