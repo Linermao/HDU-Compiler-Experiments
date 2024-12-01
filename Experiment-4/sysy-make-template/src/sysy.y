@@ -145,17 +145,20 @@ Stmt
   }
   | RETURN ';' {
     auto ast = new StmtAST();
+    ast->symbol = *new string("return");
     $$ = ast;
   }
   | RETURN Exp ';' {
     auto ast = new StmtAST();
     ast->exp = unique_ptr<BaseAST>($2);
+    ast->symbol = *new string("return");
     $$ = ast;
   }
   | IF '(' Exp ')' Stmt {
     auto ast = new StmtAST();
     ast->exp = unique_ptr<BaseAST>($3);
     ast->stmt_1 = unique_ptr<BaseAST>($5);
+    ast->symbol = *new string("if");
     $$ = ast;
   }
   | IF '(' Exp ')' Stmt ELSE Stmt {
@@ -163,6 +166,24 @@ Stmt
     ast->exp = unique_ptr<BaseAST>($3);
     ast->stmt_1 = unique_ptr<BaseAST>($5);
     ast->stmt_2 = unique_ptr<BaseAST>($7);
+    ast->symbol = *new string("if");
+    $$ = ast;
+  }
+  | WHILE '(' Exp ')' Stmt {
+    auto ast = new StmtAST();
+    ast->exp = unique_ptr<BaseAST>($3);
+    ast->stmt_1 = unique_ptr<BaseAST>($5);
+    ast->symbol = *new string("while");
+    $$ = ast;
+  }
+  | BREAK ';' {
+    auto ast = new StmtAST();
+    ast->symbol = *new string("break");
+    $$ = ast;
+  }
+  | CONTINUE ';' {
+    auto ast = new StmtAST();
+    ast->symbol = *new string("continue");
     $$ = ast;
   }
   ;

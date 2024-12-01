@@ -92,6 +92,9 @@ class BlockItemAST : public BaseAST
           | Block 
           | "return" [Exp] ';'
           | "if" '(' Exp ')' Stmt [ "else" Stmt ] 
+          | "while" '(' Exp ')' Stmt
+          | "break" ';'
+          | "continue" ';'
 */
 class StmtAST : public BaseAST
 {
@@ -101,23 +104,50 @@ class StmtAST : public BaseAST
     std::unique_ptr<BaseAST> block;
     std::unique_ptr<BaseAST> stmt_1;
     std::unique_ptr<BaseAST> stmt_2;
+    std::string symbol;
   void Dump() const override {
     std::cout << "StmtAST { ";
-    if (l_val && exp){
+    if (symbol == "if"){
+      if(stmt_2){
+        std::cout << "if ( ";
+        exp->Dump();
+        std::cout << " ) { ";
+        stmt_1->Dump();
+        std::cout << " } else { ";
+        stmt_2->Dump();
+        std::cout << " }";
+      }else {
+        std::cout << "if ( ";
+        exp->Dump();
+        std::cout << " ) { ";
+        stmt_1->Dump();
+        std::cout << " }";
+      }
+    }else if (symbol == "while"){
+      std::cout << "while ( ";
+      exp->Dump();
+      std::cout << " ) { ";
+      stmt_1->Dump();
+      std::cout << " }";
+    }else if (symbol == "return"){
+      std::cout << "return { ";
+      if (exp){
+        exp->Dump();
+      }
+      std::cout << " }";
+    }else if (symbol == "break"){
+      std::cout << "break { }";
+    }else if (symbol == "continue"){
+      std::cout << "continue { }";
+    }else if (l_val && exp){
       l_val->Dump();
       exp->Dump();
     }else if (block){
       block->Dump();
-    }else if (exp && stmt_1 && stmt_2){
-      exp->Dump();
-      stmt_1->Dump();
-      stmt_2->Dump();
-    }else if (exp && stmt_1){
-      exp->Dump();
-      stmt_1->Dump();
-    }else if (exp){
+    }else if(exp){
       exp->Dump();
     }
+
     std::cout << " }";
   }
 };
