@@ -1,9 +1,12 @@
+int half (int x){
+  return x/2;
+}
 
-int main() {
-  int a = 0;
-  while(a>0){
-    a = a - 1;
-    break;
-  }
-  return a;
+void f(){
+  int x=1 ;
+}
+
+int main (){
+  f();
+  return half(1);
 }

@@ -42,7 +42,7 @@ using namespace std;
 %token <int_val> INT_CONST
 
 // 非终结符的类型定义
-%type <ast_val> FuncDef FuncType Block Stmt BlockItem Number Exp PrimaryExp UnaryExp AddExp MulExp RelExp EqExp LAndExp LOrExp Decl ConstDecl BType ConstDef ConstInitVal LVal ConstExp VarDecl VarDef InitVal
+%type <ast_val> CompUnits FuncDef FuncType FuncFParams FuncFParam FuncRParams Block Stmt BlockItem Number Exp PrimaryExp UnaryExp AddExp MulExp RelExp EqExp LAndExp LOrExp Decl ConstDecl BType ConstDef ConstInitVal LVal ConstExp VarDecl VarDef InitVal
 %type <str_val> UnaryOp
 
 %%
@@ -53,10 +53,35 @@ using namespace std;
 // 此时我们应该把 FuncDef 返回的结果收集起来, 作为 AST 传给调用 parser 的函数
 // $1 指代规则里第一个符号的返回值, 也就是 FuncDef 的返回值
 CompUnit
-  : FuncDef {
+  : CompUnits {
     auto comp_unit = make_unique<CompUnitAST>();
-    comp_unit->func_def = unique_ptr<BaseAST>($1);
+    comp_unit->comp_units = unique_ptr<BaseAST>($1);
     ast = move(comp_unit);
+  }
+  ;
+
+CompUnits 
+  : FuncDef {
+    auto ast = new CompUnitsAST();
+    ast->func_def = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | Decl {
+    auto ast = new CompUnitsAST();
+    ast->decl = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | CompUnits Decl {
+    auto ast = new CompUnitsAST();
+    ast->comp_units = unique_ptr<BaseAST>($1);
+    ast->decl = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  | CompUnits FuncDef {
+    auto ast = new CompUnitsAST();
+    ast->comp_units = unique_ptr<BaseAST>($1);
+    ast->func_def = unique_ptr<BaseAST>($2);
+    $$ = ast;
   }
   ;
 
@@ -78,6 +103,14 @@ FuncDef
     ast->block = unique_ptr<BaseAST>($5);
     $$ = ast;
   }
+  | FuncType IDENT '(' FuncFParams ')' Block {
+    auto ast = new FuncDefAST();
+    ast->func_type = unique_ptr<BaseAST>($1);
+    ast->ident = *unique_ptr<string>($2);
+    ast->func_f_params = unique_ptr<BaseAST>($4);
+    ast->block = unique_ptr<BaseAST>($6);
+    $$ = ast;
+  }
   ;
 
 // 同上, 不再解释
@@ -85,6 +118,43 @@ FuncType
   : INT {
     auto ast = new FuncTypeAST();
     ast->type = *new string("int");
+    $$ = ast;
+  } 
+  | VOID {
+    auto ast = new FuncTypeAST();
+    ast->type = *new string("void");
+    $$ = ast;
+  }
+  ;
+
+FuncFParams
+  : FuncFParam {
+    auto ast = new FuncFParamsAST();
+    ast->func_f_param = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  ;
+
+FuncFParam
+  : BType IDENT {
+    auto ast = new FuncFParamAST();
+    ast->b_type = unique_ptr<BaseAST>($1);
+    ast->ident = *unique_ptr<string>($2);
+    $$ = ast;
+  }
+  | BType IDENT ',' FuncFParam {
+    auto ast = new FuncFParamAST();
+    ast->b_type = unique_ptr<BaseAST>($1);
+    ast->ident = *unique_ptr<string>($2);
+    ast->func_f_param = unique_ptr<BaseAST>($4);
+    $$ = ast;
+  }
+  ;
+
+FuncRParams
+  : Exp {
+    auto ast = new FuncRParamsAST();
+    ast->exp = unique_ptr<BaseAST>($1);
     $$ = ast;
   }
   ;
@@ -300,19 +370,14 @@ InitVal
   ;
 
 Exp 
-  : UnaryExp {
-    auto ast = new ExpAST();
-    ast->unary_exp = unique_ptr<BaseAST>($1);
-    $$ = ast;
-  }
-  | AddExp {
-    auto ast = new ExpAST();
-    ast->add_exp = unique_ptr<BaseAST>($1);
-    $$ = ast;
-  }
-  | LOrExp {
+  : LOrExp {
     auto ast = new ExpAST();
     ast->l_or_exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  } 
+  | ',' Exp {
+    auto ast = new ExpAST();
+    ast->exp = unique_ptr<BaseAST>($2);
     $$ = ast;
   }
   ;
@@ -488,6 +553,15 @@ UnaryExp
     auto ast = new UnaryExpAST();
     ast->unary_op = *unique_ptr<string>($1);
     ast->unary_exp = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  | IDENT '(' ')'{
+    auto ast = new UnaryExpAST();
+    $$ = ast;
+  }
+  | IDENT '(' FuncRParams ')'{
+    auto ast = new UnaryExpAST();
+    ast->func_r_params = unique_ptr<BaseAST>($3);
     $$ = ast;
   }
   ;
