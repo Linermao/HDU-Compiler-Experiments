@@ -42,7 +42,7 @@ using namespace std;
 %token <int_val> INT_CONST
 
 // 非终结符的类型定义
-%type <ast_val> FuncDef FuncType Block Stmt BlockItem Number Exp PrimaryExp UnaryExp AddExp MulExp RelExp EqExp LAndExp LOrExp Decl ConstDecl BType ConstDef ConstInitVal LVal ConstExp
+%type <ast_val> FuncDef FuncType Block Stmt BlockItem Number Exp PrimaryExp UnaryExp AddExp MulExp RelExp EqExp LAndExp LOrExp Decl ConstDecl BType ConstDef ConstInitVal LVal ConstExp VarDecl VarDef InitVal
 %type <str_val> UnaryOp
 
 %%
@@ -123,9 +123,28 @@ BlockItem
   ;
 
 Stmt
-  : RETURN Number ';' {
+  : LVal '=' Exp ';' {
     auto ast = new StmtAST();
-    ast->number = unique_ptr<BaseAST>($2);
+    ast->l_val = unique_ptr<BaseAST>($1);
+    ast->exp = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  | ';'{
+    auto ast = new StmtAST();
+    $$ = ast;
+  }
+  | Exp ';'{
+    auto ast = new StmtAST();
+    ast->exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | Block {
+    auto ast = new StmtAST();
+    ast->block = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | RETURN ';' {
+    auto ast = new StmtAST();
     $$ = ast;
   }
   | RETURN Exp ';' {
@@ -139,6 +158,11 @@ Decl
   : ConstDecl {
     auto ast = new DeclAST();
     ast->const_decl = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | VarDecl {
+    auto ast = new DeclAST();
+    ast->var_decl = unique_ptr<BaseAST>($1);
     $$ = ast;
   }
   ;
@@ -194,6 +218,49 @@ LVal
   : IDENT {
     auto ast = new LValAST();
     ast->ident = *unique_ptr<string>($1);
+    $$ = ast;
+  }
+  ;
+
+VarDecl
+  : BType VarDef ';' {
+    auto ast = new VarDeclAST();
+    ast->b_type = unique_ptr<BaseAST>($1);
+    ast->var_def = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  ;
+
+VarDef 
+  : IDENT {
+    auto ast = new VarDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    $$ = ast;
+  }  
+  | IDENT '=' InitVal{
+    auto ast = new VarDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->init_val = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  | IDENT ',' VarDef{
+    auto ast = new VarDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->var_def = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  | IDENT '=' InitVal ',' VarDef{ 
+    auto ast = new VarDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->init_val = unique_ptr<BaseAST>($3);
+    ast->var_def = unique_ptr<BaseAST>($5);
+    $$ = ast;
+  }
+
+InitVal
+  : Exp {
+    auto ast = new InitValAST();
+    ast->exp = unique_ptr<BaseAST>($1);
     $$ = ast;
   }
   ;

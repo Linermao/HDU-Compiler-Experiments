@@ -87,31 +87,46 @@ class BlockItemAST : public BaseAST
   }
 };
 
+/* Stmt ::= LVal '=' Exp ';' 
+          | [Exp] ';' 
+          | Block 
+          | "return" [Exp] ';'
+*/
 class StmtAST : public BaseAST
 {
   public:
-    std::unique_ptr<BaseAST> number;
     std::unique_ptr<BaseAST> exp;
+    std::unique_ptr<BaseAST> l_val;
+    std::unique_ptr<BaseAST> block;
   void Dump() const override {
     std::cout << "StmtAST { ";
-    if (number){
-      number->Dump();
-    }
-    if (exp){
+    if (l_val){
+      l_val->Dump();
       exp->Dump();
+    }else if (exp){
+      exp->Dump();
+    }    
+    if (block){
+      block->Dump();
     }
     std::cout << " }";
   }
 };
 
-// Decl ::= ConstDecl
+// Decl ::= ConstDecl | VarDecl
 class DeclAST : public BaseAST
 {
   public:
     std::unique_ptr<BaseAST> const_decl;
+    std::unique_ptr<BaseAST> var_decl;
   void Dump() const override {
     std::cout << "DeclAST { ";
-    const_decl->Dump();
+    if (const_decl){
+      const_decl->Dump();
+    }
+    if (var_decl){
+      var_decl->Dump();
+    }
     std::cout << " }";
   }
 };
@@ -152,8 +167,11 @@ class ConstDefAST : public BaseAST
     std::unique_ptr<BaseAST> const_def;
   void Dump() const override {
     std::cout << "ConstDefAST { ";
-    std::cout << ident << ", ";
+    std::cout << ident << " = ";
     const_init_val->Dump();
+    if (const_def){
+      const_def->Dump();
+    }
     std::cout << " }";
   }
 };
@@ -177,6 +195,53 @@ class ConstExpAST : public BaseAST
     std::unique_ptr<BaseAST> exp;
   void Dump() const override {
     std::cout << "ConstExpAST { ";
+    exp->Dump();
+    std::cout << " }";
+  }
+};
+
+// VarDecl ::= BType VarDef { ',' VarDef } ';'
+class VarDeclAST : public BaseAST
+{
+  public:
+    std::unique_ptr<BaseAST> b_type;
+    std::unique_ptr<BaseAST> var_def;
+  void Dump() const override {
+    std::cout << "VarDeclAST { ";
+    b_type->Dump();
+    var_def->Dump();
+    std::cout << " }";
+  }
+};
+
+// VarDef ::= IDENT | IDENT "=" InitVal
+class VarDefAST : public BaseAST
+{
+  public:
+    std::string ident;
+    std::unique_ptr<BaseAST> init_val;
+    std::unique_ptr<BaseAST> var_def;
+  void Dump() const override {
+    std::cout << "VarDefAST { ";
+    std::cout << ident;
+    if (init_val){
+      std::cout << " = ";
+      init_val->Dump();
+    }
+    if (var_def){
+      var_def->Dump();
+    }
+    std::cout << " }";
+  }
+};
+
+// InitVal ::= Exp
+class InitValAST : public BaseAST
+{
+  public:
+    std::unique_ptr<BaseAST> exp;
+  void Dump() const override {
+    std::cout << "InitValAST { ";
     exp->Dump();
     std::cout << " }";
   }

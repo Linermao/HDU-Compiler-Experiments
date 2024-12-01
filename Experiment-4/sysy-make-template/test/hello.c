@@ -1,5 +1,8 @@
 
 int main() {
-  const int x = 1;
+  int x = 1, y=2;
+  {
+    int x = 2;
+  }
   return x;
 }
