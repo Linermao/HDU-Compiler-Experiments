@@ -1,0 +1,1 @@
+bison -vdty src/sysy.y

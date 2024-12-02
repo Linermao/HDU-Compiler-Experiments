@@ -42,7 +42,7 @@ using namespace std;
 %token <int_val> INT_CONST
 
 // 非终结符的类型定义
-%type <ast_val> CompUnits FuncDef FuncType FuncFParams FuncFParam FuncRParams Block Stmt BlockItem Number Exp PrimaryExp UnaryExp AddExp MulExp RelExp EqExp LAndExp LOrExp Decl ConstDecl BType ConstDef ConstInitVal LVal ConstExp VarDecl VarDef InitVal
+%type <ast_val> CompUnits FuncDef FuncDef_ FuncDefOrVarDecl FuncType FuncFParams FuncFParam FuncRParams Block Stmt BlockItem Number Exp PrimaryExp UnaryExp AddExp MulExp RelExp EqExp LAndExp LOrExp Decl ConstDecl BType ConstDef ConstInitVal LVal ConstExp VarDecl VarDecl_ VarDef InitVal
 %type <str_val> UnaryOp
 
 %%
@@ -61,40 +61,55 @@ CompUnit
   ;
 
 CompUnits 
-  : FuncDef {
+  : FuncDefOrVarDecl {
     auto ast = new CompUnitsAST();
-    ast->func_def = unique_ptr<BaseAST>($1);
+    ast->funcdef_or_vardecl = unique_ptr<BaseAST>($1);
     $$ = ast;
   }
-  | Decl {
+  | ConstDecl {
     auto ast = new CompUnitsAST();
-    ast->decl = unique_ptr<BaseAST>($1);
+    ast->const_decl = unique_ptr<BaseAST>($1);
     $$ = ast;
   }
-  | CompUnits Decl {
+  | CompUnits FuncDefOrVarDecl {
     auto ast = new CompUnitsAST();
     ast->comp_units = unique_ptr<BaseAST>($1);
-    ast->decl = unique_ptr<BaseAST>($2);
+    ast->funcdef_or_vardecl = unique_ptr<BaseAST>($2);
     $$ = ast;
   }
-  | CompUnits FuncDef {
+  | CompUnits ConstDecl {
     auto ast = new CompUnitsAST();
     ast->comp_units = unique_ptr<BaseAST>($1);
+    ast->const_decl = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  | VOID FuncDef_ {
+    auto ast = new CompUnitsAST();
     ast->func_def = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }  
+  | CompUnits VOID FuncDef_ {
+    auto ast = new CompUnitsAST();
+    ast->comp_units = unique_ptr<BaseAST>($1);
+    ast->func_def = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
+  ;
+  ;
+
+FuncDefOrVarDecl
+  : BType FuncDef_ {
+    auto ast = new FuncDefOrVarDeclAST();
+    ast->func_def = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  | BType VarDecl_ {
+    auto ast = new FuncDefOrVarDeclAST();
+    ast->var_decl = unique_ptr<BaseAST>($2);
     $$ = ast;
   }
   ;
 
-// FuncDef ::= FuncType IDENT '(' ')' Block;
-// 我们这里可以直接写 '(' 和 ')', 因为之前在 lexer 里已经处理了单个字符的情况
-// 解析完成后, 把这些符号的结果收集起来, 然后拼成一个新的字符串, 作为结果返回
-// $$ 表示非终结符的返回值, 我们可以通过给这个符号赋值的方法来返回结果
-// 你可能会问, FuncType, IDENT 之类的结果已经是字符串指针了
-// 为什么还要用 unique_ptr 接住它们, 然后再解引用, 把它们拼成另一个字符串指针呢
-// 因为所有的字符串指针都是我们 new 出来的, new 出来的内存一定要 delete
-// 否则会发生内存泄漏, 而 unique_ptr 这种智能指针可以自动帮我们 delete
-// 虽然此处你看不出用 unique_ptr 和手动 delete 的区别, 但当我们定义了 AST 之后
-// 这种写法会省下很多内存管理的负担
 FuncDef
   : FuncType IDENT '(' ')' Block {
     auto ast = new FuncDefAST();
@@ -109,6 +124,22 @@ FuncDef
     ast->ident = *unique_ptr<string>($2);
     ast->func_f_params = unique_ptr<BaseAST>($4);
     ast->block = unique_ptr<BaseAST>($6);
+    $$ = ast;
+  }
+  ;
+
+FuncDef_
+  : IDENT '(' ')' Block {
+    auto ast = new FuncDefAST_();
+    ast->ident = *unique_ptr<string>($1);
+    ast->block = unique_ptr<BaseAST>($4);
+    $$ = ast;
+  }
+  | IDENT '(' FuncFParams ')' Block {
+    auto ast = new FuncDefAST_();
+    ast->ident = *unique_ptr<string>($1);
+    ast->func_f_params = unique_ptr<BaseAST>($3);
+    ast->block = unique_ptr<BaseAST>($5);
     $$ = ast;
   }
   ;
@@ -331,6 +362,14 @@ VarDecl
     auto ast = new VarDeclAST();
     ast->b_type = unique_ptr<BaseAST>($1);
     ast->var_def = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  ;
+  
+VarDecl_
+  : VarDef ';' {
+    auto ast = new VarDeclAST_();
+    ast->var_def = unique_ptr<BaseAST>($1);
     $$ = ast;
   }
   ;

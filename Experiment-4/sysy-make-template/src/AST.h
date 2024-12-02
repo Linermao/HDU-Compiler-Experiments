@@ -26,25 +26,46 @@ public:
 		}
 };
 
-// CompUnits ::= [CompUnits] (Decl | FuncDef)
+// CompUnits ::= [CompUnits] (FuncDefOrVarDecl | ConstDecl)
 class CompUnitsAST : public BaseAST{
 public:
   std::unique_ptr<BaseAST> comp_units;
-  std::unique_ptr<BaseAST> decl;
+  std::unique_ptr<BaseAST> funcdef_or_vardecl;
+  std::unique_ptr<BaseAST> const_decl;
   std::unique_ptr<BaseAST> func_def;
 	void Dump() const override {
 			std::cout << "CompUnitsAST { ";
       if(comp_units){
         comp_units->Dump();
       }
-      if (decl){
-        decl->Dump();
+      if (funcdef_or_vardecl){
+        funcdef_or_vardecl->Dump();
+      }
+      if (const_decl){
+        const_decl->Dump();
       }
       if (func_def){
         func_def->Dump();
       }
 			std::cout << " }";
 		}
+};
+
+// FuncDefOrVarDecl ::= BType FuncDef_ | BType VarDecl_
+class FuncDefOrVarDeclAST : public BaseAST{
+  public:
+    std::unique_ptr<BaseAST> func_def;
+    std::unique_ptr<BaseAST> var_decl;
+  void Dump() const override {
+    std::cout << "FuncDefOrVarDeclAST { ";
+    if (func_def){
+      func_def->Dump();
+    }
+    if (var_decl){
+      var_decl->Dump();
+    }
+    std::cout << " }";
+  }
 };
 
 // Decl ::= ConstDecl | VarDecl
@@ -141,6 +162,17 @@ class VarDeclAST : public BaseAST{
   }
 };
 
+// VarDecl_ ::= VarDef { ',' VarDef } ';'
+class VarDeclAST_ : public BaseAST{
+  public:
+    std::unique_ptr<BaseAST> var_def;
+  void Dump() const override {
+    std::cout << "VarDeclAST { ";
+    var_def->Dump();
+    std::cout << " }";
+  }
+};
+
 // VarDef ::= IDENT | IDENT "=" InitVal
 class VarDefAST : public BaseAST{
   public:
@@ -183,6 +215,24 @@ class FuncDefAST : public BaseAST {
   void Dump() const override {
     std::cout << "FuncDefAST { ";
     func_type->Dump();
+    std::cout << ", " << ident << ", ";
+    if(func_f_params){
+      func_f_params->Dump();
+    }
+    block->Dump();
+    std::cout << " }";
+  }
+};
+
+// FuncDef_ ::= IDENT '(' [FuncFParams] ')' Block
+class FuncDefAST_ : public BaseAST {
+ public:
+  std::string ident;
+  std::unique_ptr<BaseAST> func_f_params;
+  std::unique_ptr<BaseAST> block;
+
+  void Dump() const override {
+    std::cout << "FuncDefAST { ";
     std::cout << ", " << ident << ", ";
     if(func_f_params){
       func_f_params->Dump();

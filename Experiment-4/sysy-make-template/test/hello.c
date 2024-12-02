@@ -1,12 +1,22 @@
-int half (int x){
-  return x/2;
+const int const_Def = 1;
+
+int var_int_Decl;
+int var_int_Def = 1;
+
+int func_int_Def(){
+    return 0;
+}
+int func_int_Def_p(int x){
+    return x;
 }
 
-void f(){
-  int x=1 ;
+void func_void_Def(){
+    return ;
+}
+void func_void_Def_p(int x){
+    return;
 }
 
-int main (){
-  f();
-  return half(1);
+int main(){
+    return 0;
 }

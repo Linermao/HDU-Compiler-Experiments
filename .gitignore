@@ -18,3 +18,5 @@ user/usys.S
 .vscode/
 .DS_Store
 Compiler-for-SysY/
+PKU-SysY-Compiler/
+sysy-compiler-pku2022-spring/
