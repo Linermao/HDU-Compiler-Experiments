@@ -1,22 +1,17 @@
-const int const_Def = 1;
+int main () {
+    int a = 1;
+    int b = 2;
+    int c = a + b;
+    int d = c * 2;
+    int e = d - 1;
+    int f = e / 2;
+    int g = f % 2;
+    int h = g + 1;
+    int i = h - 1;
+    int j = i * 2;
+    int k = j / 2;
+    int l = k + 1;
+    int m = l - 1;
 
-int var_int_Decl;
-int var_int_Def = 1;
-
-int func_int_Def(){
-    return 0;
-}
-int func_int_Def_p(int x){
-    return x;
-}
-
-void func_void_Def(){
-    return ;
-}
-void func_void_Def_p(int x){
-    return;
-}
-
-int main(){
-    return 0;
+    return m;
 }

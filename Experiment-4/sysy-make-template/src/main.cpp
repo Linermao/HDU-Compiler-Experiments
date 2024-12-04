@@ -35,9 +35,14 @@ int main(int argc, const char *argv[]) {
   auto ret = yyparse(ast);
   assert(!ret);
 
-  // dump AST
-  ast->Dump();
-  cout << endl;
+int old = dup(1);
 
+  if (strcmp(mode, "-koopa") == 0)
+  {
+    // Dump Koopa IR
+    freopen(output, "w", stdout);
+    ast->Dump();
+    dup2(old, 1);
+  }
   return 0;
 }
