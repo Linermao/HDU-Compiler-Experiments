@@ -463,10 +463,12 @@ UnaryExp
   }
   | IDENT LPAREN RPAREN{
     auto ast = new UnaryExpAST();
+    ast->ident = *unique_ptr<string>($1);
     $$ = ast;
   }
   | IDENT LPAREN FuncRParams RPAREN{
     auto ast = new UnaryExpAST();
+    ast->ident = *unique_ptr<string>($1);
     ast->func_r_params = unique_ptr<BaseAST>($3);
     $$ = ast;
   }
@@ -642,8 +644,6 @@ LOrExp
 
 %%
 
-// 定义错误处理函数, 其中第二个参数是错误信息
-// parser 如果发生错误 (例如输入的程序出现了语法错误), 就会调用这个函数
 void yyerror(std::unique_ptr<BaseAST> &ast, const char *s) {
   extern int yylineno;
   extern char *yytext;

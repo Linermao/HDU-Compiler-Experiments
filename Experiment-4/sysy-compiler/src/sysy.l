@@ -19,12 +19,12 @@ static int PRINT_TOKEN = 0;
 
 void print_token(const string& token, const string& name){
     if (PRINT_TOKEN){
-        cout << token << ": " << name << endl;
+        std::cout << token << ": " << name << endl;
     }
 }
 
 void print_error(const string& msg){
-    cout << "Error: " << msg << "at line " << yylineno << endl;
+    std::cout << "Error: " << msg << "at line " << yylineno << endl;
     exit(0);
 }
 

@@ -20,7 +20,17 @@ extern int yyparse(unique_ptr<BaseAST> &ast);
 int main(int argc, const char *argv[]) {
   // 解析命令行参数. 测试脚本/评测平台要求你的编译器能接收如下参数:
   // compiler 模式 输入文件 -o 输出文件
-  assert(argc == 5);
+  // compiler mode input_file -o output_file
+
+  if (argc == 2 && strcmp(argv[1], "-help") == 0){
+    printf("Usage: ./compiler -koopa | -lex | -ast | -semantic input_file -o output_file\n");
+    exit(0);
+  }
+  else if (argc != 5){
+    printf("ERROR! Usage: ./compiler -koopa | -lex | -ast | -semantic input_file -o output_file\n");
+    exit(0);
+  }
+
   auto mode = argv[1];
   auto input = argv[2];
   auto output = argv[4];
@@ -35,7 +45,7 @@ int main(int argc, const char *argv[]) {
   auto ret = yyparse(ast);
   assert(!ret);
 
-int old = dup(1);
+  int old = dup(1);
 
   if (strcmp(mode, "-koopa") == 0)
   {
@@ -43,6 +53,28 @@ int old = dup(1);
     freopen(output, "w", stdout);
     ast->Dump();
     dup2(old, 1);
+  }
+  else if (strcmp(mode, "-lex") == 0)
+  {
+    freopen(output, "w", stdout);
+    // 
+    dup2(old, 1);
+  }  
+  else if (strcmp(mode, "-ast") == 0)
+  {
+    freopen(output, "w", stdout);
+    ast->Print_AST();
+    dup2(old, 1);
+  }  
+  else if (strcmp(mode, "-semantic") == 0)
+  {
+    freopen(output, "w", stdout);
+    ast->Semantic_Analysis();
+    dup2(old, 1);
+  }  
+  else
+  {
+    printf("ERROR! Usage: ./compiler -koopa | -lex | -ast | -semantic input_file -o output_file\n");
   }
   return 0;
 }
