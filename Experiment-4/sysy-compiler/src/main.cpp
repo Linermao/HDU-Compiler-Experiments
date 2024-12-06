@@ -16,6 +16,23 @@ using namespace std;
 // 看起来会很烦人, 于是干脆采用这种看起来 dirty 但实际很有效的手段
 extern FILE *yyin;
 extern int yyparse(unique_ptr<BaseAST> &ast);
+extern int PRINT_TOKEN;
+extern void print_token(const string& token, const string& name);
+
+// Lex 词法分析输出导致代码非常 dirty，有时间再优化吧
+const char * mode;
+const char * input;
+const char * output;
+
+void print_token(const string& token, const string& name){
+    if (PRINT_TOKEN){
+        int old = dup(1);
+        freopen(output, "a", stdout);
+        // std::cout << token << ": " << name << endl;
+        std::cout << token << ": " << name << endl;
+        dup2(old, 1);
+    }
+}
 
 int main(int argc, const char *argv[]) {
   // 解析命令行参数. 测试脚本/评测平台要求你的编译器能接收如下参数:
@@ -31,10 +48,10 @@ int main(int argc, const char *argv[]) {
     exit(0);
   }
 
-  auto mode = argv[1];
-  auto input = argv[2];
-  auto output = argv[4];
-
+  mode = argv[1];
+  input = argv[2];
+  output = argv[4];
+  
   // 打开输入文件, 并且指定 lexer 在解析的时候读取这个文件
   yyin = fopen(input, "r");
   assert(yyin);
@@ -54,12 +71,6 @@ int main(int argc, const char *argv[]) {
     ast->Dump();
     dup2(old, 1);
   }
-  else if (strcmp(mode, "-lex") == 0)
-  {
-    freopen(output, "w", stdout);
-    // 
-    dup2(old, 1);
-  }  
   else if (strcmp(mode, "-ast") == 0)
   {
     freopen(output, "w", stdout);
@@ -68,9 +79,11 @@ int main(int argc, const char *argv[]) {
   }  
   else if (strcmp(mode, "-semantic") == 0)
   {
-    freopen(output, "w", stdout);
     ast->Semantic_Analysis();
-    dup2(old, 1);
+  }  
+  else if (strcmp(mode, "-lex") == 0)
+  {
+    PRINT_TOKEN=1;
   }  
   else
   {

@@ -6,25 +6,24 @@
 %{
 
 #include <cstdlib>
-#include <string>
 
 // 因为 Flex 会用到 Bison 中关于 token 的定义
 // 所以需要 include Bison 生成的头文件
 #include "sysy.tab.hpp"
 #include "AST.h"
+#include <unistd.h>
+#include <cstdio>
+#include <cstring>
+#include <memory>
 
 using namespace std;
 
-static int PRINT_TOKEN = 0;
+int PRINT_TOKEN = 1;
 
-void print_token(const string& token, const string& name){
-    if (PRINT_TOKEN){
-        std::cout << token << ": " << name << endl;
-    }
-}
+void print_token(const string& token, const string& name);
 
-void print_error(const string& msg){
-    std::cout << "Error: " << msg << "at line " << yylineno << endl;
+void print_error(const string& msg, const char token){
+    std::cout << "Error: " << msg << " \"" << token << "\" " << "at line " << yylineno << endl;
     exit(0);
 }
 
@@ -88,7 +87,7 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 {Octal}         { yylval.int_val = strtol(yytext, nullptr, 0); print_token("INT_CONST", yytext); return INT_CONST; }
 {Hexadecimal}   { yylval.int_val = strtol(yytext, nullptr, 0); print_token("INT_CONST", yytext); return INT_CONST; }
 
-.               { cout << "Error: Invalid characterat \"" << yytext[0] << "\" at line " << yylineno << endl; exit(0); }
+.               { print_error("Invalid characterat", yytext[0]); }
 
 %%
 

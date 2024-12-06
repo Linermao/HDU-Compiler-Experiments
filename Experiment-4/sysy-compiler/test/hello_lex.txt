@@ -1,0 +1,10 @@
+Error: undefined variable b.
+INT: int
+IDENT: main
+LPAREN: (
+RPAREN: )
+LBRACE: {
+RETURN: return
+IDENT: b
+SEMI: ;
+RBRACE: }
