@@ -60,44 +60,59 @@ int main(int argc, const char *argv[]) {
     freopen(output, "w", stdout);
     dup2(old, 1);
     PRINT_TOKEN=1;
-  }  
+
+    // 打开输入文件, 并且指定 lexer 在解析的时候读取这个文件
+    yyin = fopen(input, "r");
+    assert(yyin);    
+    
+    // 调用 parser 函数, parser 函数会进一步调用 lexer 解析输入文件的
+    // parse input file
+    unique_ptr<BaseAST> ast;
+    auto ret = yyparse(ast);
+    assert(!ret);
+
+  }else {
+    // 打开输入文件, 并且指定 lexer 在解析的时候读取这个文件
+    yyin = fopen(input, "r");
+    assert(yyin);
+    
+    // 调用 parser 函数, parser 函数会进一步调用 lexer 解析输入文件的
+    // parse input file
+    unique_ptr<BaseAST> ast;
+    auto ret = yyparse(ast);
+    assert(!ret);
+
+    int old = dup(1);
+
+    if (strcmp(mode, "-koopa") == 0)
+    {
+      // Dump Koopa IR
+      freopen(output, "w", stdout);
+      ast->Dump();
+      dup2(old, 1);
+    }
+    else if (strcmp(mode, "-ast") == 0)
+    {
+      freopen(output, "w", stdout);
+      ast->Print_AST();
+      dup2(old, 1);
+    }  
+    else if (strcmp(mode, "-semantic") == 0)
+    {
+      ast->Semantic_Analysis();
+    }  
+    else if (strcmp(mode, "-lex") == 0)
+    {
+      PRINT_TOKEN=1;
+    }  
+    else
+    {
+      printf("ERROR! Usage: ./compiler -koopa | -lex | -ast | -semantic input_file -o output_file\n");
+    }
+  } 
   
-  // 打开输入文件, 并且指定 lexer 在解析的时候读取这个文件
-  yyin = fopen(input, "r");
-  assert(yyin);
 
-  // 调用 parser 函数, parser 函数会进一步调用 lexer 解析输入文件的
-  // parse input file
-  unique_ptr<BaseAST> ast;
-  auto ret = yyparse(ast);
-  assert(!ret);
 
-  int old = dup(1);
 
-  if (strcmp(mode, "-koopa") == 0)
-  {
-    // Dump Koopa IR
-    freopen(output, "w", stdout);
-    ast->Dump();
-    dup2(old, 1);
-  }
-  else if (strcmp(mode, "-ast") == 0)
-  {
-    freopen(output, "w", stdout);
-    ast->Print_AST();
-    dup2(old, 1);
-  }  
-  else if (strcmp(mode, "-semantic") == 0)
-  {
-    ast->Semantic_Analysis();
-  }  
-  else if (strcmp(mode, "-lex") == 0)
-  {
-    PRINT_TOKEN=1;
-  }  
-  else
-  {
-    printf("ERROR! Usage: ./compiler -koopa | -lex | -ast | -semantic input_file -o output_file\n");
-  }
   return 0;
 }

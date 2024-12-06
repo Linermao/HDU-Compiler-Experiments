@@ -22,7 +22,7 @@ AddExpAST:
 MulExpAST:
 UnaryExpAST
 PrimaryExpAST:
-INT_CONST: 2
+INT_CONST: 0
 BlockItemAST:
 StmtAST:
 ExpAST:

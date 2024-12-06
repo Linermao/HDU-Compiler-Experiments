@@ -1,0 +1,9 @@
+INT: int
+IDENT: main
+LPAREN: (
+RPAREN: )
+LBRACE: {
+RETURN: return
+INT_CONST(Octal): 0
+SEMI: ;
+RBRACE: }
