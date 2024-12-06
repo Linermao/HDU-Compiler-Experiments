@@ -18,7 +18,7 @@
 
 using namespace std;
 
-int PRINT_TOKEN = 1;
+int PRINT_TOKEN = 0;
 
 void print_token(const string& token, const string& name);
 
@@ -83,9 +83,9 @@ Hexadecimal   0[xX][0-9a-fA-F]+
 
 {Identifier}    { yylval.str_val = new string(yytext); print_token("IDENT", yytext); return IDENT; }
 
-{Decimal}       { yylval.int_val = strtol(yytext, nullptr, 0); print_token("INT_CONST", yytext); return INT_CONST; }
-{Octal}         { yylval.int_val = strtol(yytext, nullptr, 0); print_token("INT_CONST", yytext); return INT_CONST; }
-{Hexadecimal}   { yylval.int_val = strtol(yytext, nullptr, 0); print_token("INT_CONST", yytext); return INT_CONST; }
+{Decimal}       { yylval.int_val = strtol(yytext, nullptr, 0); print_token("INT_CONST", to_string(yylval.int_val)); return INT_CONST; }
+{Octal}         { yylval.int_val = strtol(yytext, nullptr, 0); print_token("INT_CONST", to_string(yylval.int_val)); return INT_CONST; }
+{Hexadecimal}   { yylval.int_val = strtol(yytext, nullptr, 0); print_token("INT_CONST", to_string(yylval.int_val)); return INT_CONST; }
 
 .               { print_error("Invalid characterat", yytext[0]); }
 

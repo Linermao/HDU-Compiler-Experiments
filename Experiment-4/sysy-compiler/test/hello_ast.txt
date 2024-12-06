@@ -11,7 +11,7 @@ VarDeclAST:
 BTypeAST:
 TYPE: int
 intVarDefAST:
-IDENT: b
+IDENT: a
 InitValAST:
 ExpAST:
 LOrExpAST:
@@ -22,7 +22,7 @@ AddExpAST:
 MulExpAST:
 UnaryExpAST
 PrimaryExpAST:
-INT_CONST: 1
+INT_CONST: 2
 BlockItemAST:
 StmtAST:
 ExpAST:
@@ -34,5 +34,4 @@ AddExpAST:
 MulExpAST:
 UnaryExpAST
 PrimaryExpAST:
-LValAST:
-IDENT: b
+INT_CONST: 0

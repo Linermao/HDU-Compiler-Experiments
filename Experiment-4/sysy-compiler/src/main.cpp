@@ -25,13 +25,13 @@ const char * input;
 const char * output;
 
 void print_token(const string& token, const string& name){
-    if (PRINT_TOKEN){
-        int old = dup(1);
-        freopen(output, "a", stdout);
-        // std::cout << token << ": " << name << endl;
-        std::cout << token << ": " << name << endl;
-        dup2(old, 1);
-    }
+  if (PRINT_TOKEN){
+    int old = dup(1);
+    freopen(output, "a", stdout);
+    // std::cout << token << ": " << name << endl;
+    std::cout << token << ": " << name << endl;
+    dup2(old, 1);
+  }
 }
 
 int main(int argc, const char *argv[]) {
@@ -51,6 +51,16 @@ int main(int argc, const char *argv[]) {
   mode = argv[1];
   input = argv[2];
   output = argv[4];
+
+  // 非常 dirty
+  if (strcmp(mode, "-lex") == 0)
+  {
+    // 清空
+    int old = dup(1);
+    freopen(output, "w", stdout);
+    dup2(old, 1);
+    PRINT_TOKEN=1;
+  }  
   
   // 打开输入文件, 并且指定 lexer 在解析的时候读取这个文件
   yyin = fopen(input, "r");

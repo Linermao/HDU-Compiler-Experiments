@@ -1,10 +1,14 @@
-Error: undefined variable b.
 INT: int
 IDENT: main
 LPAREN: (
 RPAREN: )
 LBRACE: {
+INT: int
+IDENT: a
+ASSIGN: =
+INT_CONST: 2
+SEMI: ;
 RETURN: return
-IDENT: b
+INT_CONST: 0
 SEMI: ;
 RBRACE: }
