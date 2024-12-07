@@ -39,7 +39,7 @@ Identifier    [a-zA-Z_][a-zA-Z0-9_]*
 
 /* 整数字面量 */
 Decimal       [1-9][0-9]*
-Octal         0[a-zA-Z0-9]*
+Octal         0[0-7]*
 Hexadecimal   0[xX][a-zA-Z0-9]+
 
 %%

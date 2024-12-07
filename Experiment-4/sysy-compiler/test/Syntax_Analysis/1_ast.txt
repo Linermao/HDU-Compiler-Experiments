@@ -43,7 +43,7 @@ FuncFParamsAST:
 FuncFParamAST:
 BTypeAST:
 TYPE: int
-intIDENT: x
+IDENT: x
 BlockAST:
 BlockItemAST:
 StmtAST:
