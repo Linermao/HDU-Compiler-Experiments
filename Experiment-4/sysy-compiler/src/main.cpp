@@ -100,11 +100,7 @@ int main(int argc, const char *argv[]) {
     else if (strcmp(mode, "-semantic") == 0)
     {
       ast->Semantic_Analysis();
-    }  
-    else if (strcmp(mode, "-lex") == 0)
-    {
-      PRINT_TOKEN=1;
-    }  
+    }
     else
     {
       printf("ERROR! Usage: ./compiler -koopa | -lex | -ast | -semantic input_file -o output_file\n");

@@ -51,7 +51,7 @@ using namespace std;
 %type <ast_val> FuncFParams FuncFParam FuncRParams Block Stmt BlockItem 
 %type <ast_val> Number Exp PrimaryExp UnaryExp AddExp MulExp RelExp EqExp 
 %type <ast_val> LAndExp LOrExp Decl ConstDecl BType ConstDef ConstInitVal 
-%type <ast_val> LVal ConstExp VarDecl VarDecl_ VarDef InitVal
+%type <ast_val> LVal ConstExp VarDecl VarDecl_ VarDef InitVal Bracket Brace
 %type <str_val> UnaryOp
 
 %%
@@ -163,6 +163,35 @@ ConstDef
     ast->const_def = unique_ptr<BaseAST>($5);
     $$ = ast;
   }
+  | IDENT LBRACKET Bracket RBRACKET ASSIGN ConstInitVal {
+    auto ast = new ConstDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->bracket = unique_ptr<BaseAST>($3);
+    ast->const_init_val = unique_ptr<BaseAST>($6);
+    $$ = ast;
+  }  
+  | IDENT LBRACKET ConstExp RBRACKET ASSIGN ConstInitVal COMMA ConstDef {
+    auto ast = new ConstDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->bracket = unique_ptr<BaseAST>($3);
+    ast->const_init_val = unique_ptr<BaseAST>($6);
+    ast->const_def = unique_ptr<BaseAST>($8);
+    $$ = ast;
+  }
+  ;
+
+Bracket
+  : LBRACKET ConstExp RBRACKET {
+    auto ast = new BracketAST();
+    ast->const_exp = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }
+  | LBRACKET ConstExp RBRACKET Bracket{
+    auto ast = new BracketAST();
+    ast->const_exp = unique_ptr<BaseAST>($2);
+    ast->bracket = unique_ptr<BaseAST>($4);
+    $$ = ast;
+  }
   ;
 
 ConstInitVal
@@ -171,12 +200,41 @@ ConstInitVal
     ast->const_exp = unique_ptr<BaseAST>($1);
     $$ = ast;
   }
+  | LBRACE Brace RBRACE{
+    auto ast = new ConstInitValAST();
+    ast->brace = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  } 
+  | LBRACE RBRACE{
+    auto ast = new ConstInitValAST();
+    $$ = ast;
+  } 
+  ;
+
+Brace
+  : ConstInitVal {
+    auto ast = new BraceAST();
+    ast->const_init_val = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | ConstInitVal COMMA Brace {
+    auto ast = new BraceAST();
+    ast->const_init_val = unique_ptr<BaseAST>($1);
+    ast->brace = unique_ptr<BaseAST>($3);
+    $$ = ast;
+  }
   ;
 
 ConstExp
   : Exp {
     auto ast = new ConstExpAST();
     ast->exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | Exp COMMA ConstExp {
+    auto ast = new ConstExpAST();
+    ast->exp = unique_ptr<BaseAST>($1);
+    ast->const_exp = unique_ptr<BaseAST>($3);
     $$ = ast;
   }
   ;
@@ -204,23 +262,51 @@ VarDef
     ast->ident = *unique_ptr<string>($1);
     $$ = ast;
   }  
-  | IDENT ASSIGN InitVal{
+  | IDENT ASSIGN InitVal {
     auto ast = new VarDefAST();
     ast->ident = *unique_ptr<string>($1);
     ast->init_val = unique_ptr<BaseAST>($3);
     $$ = ast;
   }
-  | IDENT COMMA VarDef{
+  | IDENT Bracket {
+    auto ast = new VarDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->bracket = unique_ptr<BaseAST>($2);
+    $$ = ast;
+  }  
+  | IDENT Bracket ASSIGN InitVal {
+    auto ast = new VarDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->bracket = unique_ptr<BaseAST>($2);
+    ast->init_val = unique_ptr<BaseAST>($4);
+    $$ = ast;
+  }
+  | IDENT COMMA VarDef {
     auto ast = new VarDefAST();
     ast->ident = *unique_ptr<string>($1);
     ast->var_def = unique_ptr<BaseAST>($3);
     $$ = ast;
   }
-  | IDENT ASSIGN InitVal COMMA VarDef{ 
+  | IDENT ASSIGN InitVal COMMA VarDef { 
     auto ast = new VarDefAST();
     ast->ident = *unique_ptr<string>($1);
     ast->init_val = unique_ptr<BaseAST>($3);
     ast->var_def = unique_ptr<BaseAST>($5);
+    $$ = ast;
+  }
+  | IDENT Bracket COMMA VarDef {
+    auto ast = new VarDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->bracket = unique_ptr<BaseAST>($2);
+    ast->var_def = unique_ptr<BaseAST>($4);
+    $$ = ast;
+  }  
+  | IDENT Bracket ASSIGN InitVal COMMA VarDef {
+    auto ast = new VarDefAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->bracket = unique_ptr<BaseAST>($2);
+    ast->init_val = unique_ptr<BaseAST>($4);
+    ast->var_def = unique_ptr<BaseAST>($6);
     $$ = ast;
   }
 
@@ -228,6 +314,15 @@ InitVal
   : Exp {
     auto ast = new InitValAST();
     ast->exp = unique_ptr<BaseAST>($1);
+    $$ = ast;
+  }
+  | LBRACE RBRACE {
+    auto ast = new InitValAST();
+    $$ = ast;
+  }
+  | LBRACE Brace RBRACE {
+    auto ast = new InitValAST();
+    ast->brace = unique_ptr<BaseAST>($2);
     $$ = ast;
   }
   ;
@@ -294,11 +389,39 @@ FuncFParam
     ast->ident = *unique_ptr<string>($2);
     $$ = ast;
   }
+  | BType IDENT LBRACKET RBRACKET {
+    auto ast = new FuncFParamAST();
+    ast->b_type = unique_ptr<BaseAST>($1);
+    ast->ident = *unique_ptr<string>($2);
+    $$ = ast;
+  }
+  | BType IDENT LBRACKET RBRACKET Bracket {
+    auto ast = new FuncFParamAST();
+    ast->b_type = unique_ptr<BaseAST>($1);
+    ast->ident = *unique_ptr<string>($2);
+    ast->bracket = unique_ptr<BaseAST>($5);
+    $$ = ast;
+  }
   | BType IDENT COMMA FuncFParam {
     auto ast = new FuncFParamAST();
     ast->b_type = unique_ptr<BaseAST>($1);
     ast->ident = *unique_ptr<string>($2);
     ast->func_f_param = unique_ptr<BaseAST>($4);
+    $$ = ast;
+  }  
+  | BType IDENT LBRACKET RBRACKET COMMA FuncFParam {
+    auto ast = new FuncFParamAST();
+    ast->b_type = unique_ptr<BaseAST>($1);
+    ast->ident = *unique_ptr<string>($2);
+    ast->func_f_param = unique_ptr<BaseAST>($6);
+    $$ = ast;
+  }
+  | BType IDENT LBRACKET RBRACKET Bracket COMMA FuncFParam {
+    auto ast = new FuncFParamAST();
+    ast->b_type = unique_ptr<BaseAST>($1);
+    ast->ident = *unique_ptr<string>($2);
+    ast->bracket = unique_ptr<BaseAST>($5);
+    ast->func_f_param = unique_ptr<BaseAST>($7);
     $$ = ast;
   }
   ;
@@ -408,9 +531,10 @@ Exp
     ast->l_or_exp = unique_ptr<BaseAST>($1);
     $$ = ast;
   } 
-  | COMMA Exp {
+  | LOrExp COMMA Exp {
     auto ast = new ExpAST();
-    ast->exp = unique_ptr<BaseAST>($2);
+    ast->l_or_exp = unique_ptr<BaseAST>($1);
+    ast->exp = unique_ptr<BaseAST>($3);
     $$ = ast;
   }
   ;
@@ -419,6 +543,12 @@ LVal
   : IDENT {
     auto ast = new LValAST();
     ast->ident = *unique_ptr<string>($1);
+    $$ = ast;
+  }
+  | IDENT LBRACKET Exp RBRACKET {
+    auto ast = new LValAST();
+    ast->ident = *unique_ptr<string>($1);
+    ast->exp = unique_ptr<BaseAST>($3);
     $$ = ast;
   }
   ;

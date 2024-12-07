@@ -3,16 +3,14 @@ CompUnitsAST:
 FuncDefOrVarDeclAST:
 FuncDefAST: 
 TYPE: int
-IDENT: main
-BlockAST:
-BlockItemAST:
-DeclAST:
-VarDeclAST:
+IDENT: f
+FuncFParamsAST:
+FuncFParamAST:
 BTypeAST:
 TYPE: int
-intVarDefAST:
 IDENT: a
-InitValAST:
+BracketAST:
+ConstExpAST:
 ExpAST:
 LOrExpAST:
 LAndExpAST:
@@ -22,7 +20,8 @@ AddExpAST:
 MulExpAST:
 UnaryExpAST
 PrimaryExpAST:
-INT_CONST: 0
+INT_CONST: 1
+BlockAST:
 BlockItemAST:
 StmtAST:
 ExpAST:

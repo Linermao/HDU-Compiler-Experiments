@@ -184,7 +184,6 @@ class BTypeAST : public BaseAST{
   void Print_AST() override {
     std::cout << "BTypeAST:" << std::endl;
     std::cout << "TYPE: " << type << std::endl;
-    std::cout << type;
   }
 };
 
@@ -269,7 +268,6 @@ class ConstDeclAST : public BaseAST{
   }
   void Print_AST() override {
     std::cout << "ConstDeclAST:" << std::endl;
-    std::cout << "Const ";
     b_type->Print_AST();
     const_def->Print_AST();
   }
@@ -279,21 +277,29 @@ class ConstDeclAST : public BaseAST{
   }
 };
 
-// ConstDef :: IDENT "=" ConstInitVal
+// ConstDef ::= IDENT {'[' ConstExp ']'} "=" ConstInitVal
+// ConstDef ::= IDENT [ Bracket ] "=" ConstInitVal
 class ConstDefAST : public BaseAST{
   public:
     std::string ident;
+    std::unique_ptr<BaseAST> bracket;
     std::unique_ptr<BaseAST> const_init_val;
     std::unique_ptr<BaseAST> const_def;
   void Dump() const override {
     const_init_val->Dump();
+    if(bracket){
+      bracket->Dump();
+    }
     if (const_def){
       const_def->Dump();
     }
   }
   void Print_AST() override {
     std::cout << "ConstDefAST:" << std::endl;
-    std::cout << "IDENT:" << ident << std::endl;
+    std::cout << "IDENT: " << ident << std::endl;
+    if(bracket){
+      bracket->Print_AST();
+    }
     const_init_val->Print_AST();
     if (const_def){
       const_def->Print_AST();
@@ -301,41 +307,123 @@ class ConstDefAST : public BaseAST{
   }
   void Semantic_Analysis() override {
     const_init_val->Semantic_Analysis();
+    if(bracket){
+      bracket->Semantic_Analysis();
+    }
     if (const_def){
       const_def->Semantic_Analysis();
     }
   }
 };
 
-// ConstInitVal ::= ConstExp
+// Bracket ::= '[' ConstExp ']' [ Bracket ]
+class BracketAST : public BaseAST{
+  public:
+    std::unique_ptr<BaseAST> const_exp;
+    std::unique_ptr<BaseAST> bracket;
+  void Dump() const override {
+    if (const_exp){
+      const_exp->Dump();
+    }
+    if (bracket){
+      bracket->Dump();
+    }
+  }
+  void Print_AST() override {
+    std::cout << "BracketAST:" << std::endl;
+    if (const_exp){
+      const_exp->Print_AST();
+    }
+    if (bracket){
+      bracket->Print_AST();
+    }
+  }
+  void Semantic_Analysis() override {
+    if (const_exp){
+      const_exp->Semantic_Analysis();
+    }
+    if (bracket){
+      bracket->Semantic_Analysis();
+    }
+  }
+};
+
+// ConstInitVal ::= ConstExp | '{' [ ConstInitVal { ',' ConstInitVal } ] '}'
+// ConstInitVal ::= ConstExp | '{' [ Brace ] '}'
 class ConstInitValAST : public BaseAST{
   public:
     std::unique_ptr<BaseAST> const_exp;
+    std::unique_ptr<BaseAST> brace;
   void Dump() const override {
     const_exp->Dump();
   }
   void Print_AST() override {
     std::cout << "ConstInitValAST:" << std::endl;
-    const_exp->Print_AST();
+    if(const_exp){
+      const_exp->Print_AST();
+    }
+    if(brace){
+      brace->Print_AST();
+    }
   }
   void Semantic_Analysis() override{
-    const_exp->Semantic_Analysis();
+    if(const_exp){
+      const_exp->Semantic_Analysis();
+    }
+    if(brace){
+      brace->Semantic_Analysis();
+    }
+  }
+};
+
+// Brace ::= ConstInitVal [ ',' Brace ]
+class BraceAST : public BaseAST{
+  public:
+    std::unique_ptr<BaseAST> const_init_val;
+    std::unique_ptr<BaseAST> brace;
+  void Dump() const override {
+    const_init_val->Dump();
+  }
+  void Print_AST() override {
+    std::cout << "BraceAST:" << std::endl;
+    if (const_init_val){
+      const_init_val->Print_AST();
+    }
+    if(brace){
+      brace->Print_AST();
+    }
+  }
+  void Semantic_Analysis() override {
+    if (const_init_val){
+      const_init_val->Semantic_Analysis();
+    }
+    if (brace){
+      brace->Semantic_Analysis();
+    }
   }
 };
 
 // ConstExp ::= Exp
+// ConstExp ::= Exp [ ',' ConstExp ]
 class ConstExpAST : public BaseAST{
   public:
     std::unique_ptr<BaseAST> exp;
+    std::unique_ptr<BaseAST> const_exp;
   void Dump() const override {
     exp->Dump();
   }
   void Print_AST() override {
     std::cout << "ConstExpAST:" << std::endl;
     exp->Print_AST();
+    if(const_exp){
+      const_exp->Print_AST();
+    }
   }
   void Semantic_Analysis() override{
     exp->Semantic_Analysis();
+    if (const_exp){
+      const_exp->Semantic_Analysis();
+    }
   }
 };
 
@@ -379,10 +467,13 @@ class VarDeclAST_ : public BaseAST{
   }
 };
 
-// VarDef ::= IDENT | IDENT "=" InitVal
+// VarDef ::= IDENT [ '[' ConstExp ']' ] | IDENT [ '[' ConstExp ']' ] "=" InitVal
+// VarDef ::= IDENT [ Bracket ] [ ',' VarDef ] 
+//          | IDENT [ Bracket ] "=" InitVal [ ',' VarDef ] 
 class VarDefAST : public BaseAST{
   public:
     std::string ident;
+    std::unique_ptr<BaseAST> bracket;
     std::unique_ptr<BaseAST> init_val;
     std::unique_ptr<BaseAST> var_def;
   void Dump() const override {
@@ -393,6 +484,9 @@ class VarDefAST : public BaseAST{
   void Print_AST() override {
     std::cout << "VarDefAST:" << std::endl;
     std::cout << "IDENT: " << ident << std::endl;
+    if(bracket){
+      bracket->Print_AST();
+    }
     if (init_val){
       init_val->Print_AST();
     }
@@ -427,7 +521,9 @@ class VarDefAST : public BaseAST{
         current_func_symbol_table->symbol_maps[current_func_symbol_table->depth][ident] = {0, 0, ident + std::string("_") + std::to_string(current_func_symbol_table->depth)};
       }
     }
-
+    if(bracket){
+      bracket->Semantic_Analysis();
+    }
     if (init_val){
       init_val->Semantic_Analysis();
     }
@@ -437,20 +533,30 @@ class VarDefAST : public BaseAST{
   }
 };
 
-// InitVal ::= Exp
+// InitVal ::= Exp | '{' [ InitVal {',' InitVal} ] '}'
+// InitVal ::= Exp | '{' [ Brace ] '}'
 class InitValAST : public BaseAST{
   public:
     std::unique_ptr<BaseAST> exp;
+    std::unique_ptr<BaseAST> brace;
   void Dump() const override {
     exp->Dump();
   }
   void Print_AST() override {
     std::cout << "InitValAST:" << std::endl;
-    exp->Print_AST();
+    if(exp){
+      exp->Print_AST();
+    }
+    if(brace){
+      brace->Print_AST();
+    }
   }
   void Semantic_Analysis() override{
     if (exp){
       exp->Semantic_Analysis();
+    }
+    if(brace){
+      brace->Semantic_Analysis();
     }
   }
 };
@@ -515,11 +621,13 @@ class FuncFParamsAST : public BaseAST{
   }
 };
 
-// FuncFParam ::= BType IDENT
+// FuncFParam ::= BType IDENT [ '[' ']' {'[' ConstExp ']'}]
+// FuncFParam ::= BType IDENT [ '['  ']' [ Bracket ]]
 class FuncFParamAST : public BaseAST{
   public:
     std::unique_ptr<BaseAST> b_type;
     std::string ident;
+    std::unique_ptr<BaseAST> bracket;
     std::unique_ptr<BaseAST> func_f_param;
   void Dump() const override {
     b_type->Dump();
@@ -531,12 +639,18 @@ class FuncFParamAST : public BaseAST{
     std::cout << "FuncFParamAST:" << std::endl;
     b_type->Print_AST();
     std::cout << "IDENT: " << ident << std::endl;
+    if(bracket){
+      bracket->Print_AST();
+    }
     if (func_f_param){
       func_f_param->Print_AST();
     }
   }
   void Semantic_Analysis() override{
     b_type->Semantic_Analysis();
+    if(bracket){
+      bracket->Semantic_Analysis();
+    }
     if (func_f_param){
       func_f_param->Semantic_Analysis();
     }
@@ -714,7 +828,8 @@ class StmtAST : public BaseAST{
   }
 };
 
-// Exp ::= LOrExp;
+// Exp ::= LOrExp
+// Exp ::= LOrExp [ Exp ]
 class ExpAST : public BaseAST{
   public:
     std::unique_ptr<BaseAST> l_or_exp;
@@ -746,15 +861,24 @@ class ExpAST : public BaseAST{
   }
 };
 
-// LVal ::= IDENT
+// LVal ::= IDENT {'[' Exp ']'}
+// LVal ::= IDENT [ Bracket ]
 class LValAST : public BaseAST{
   public:
     std::string ident;
+    std::unique_ptr<BaseAST> bracket;
+    std::unique_ptr<BaseAST> exp;
   void Dump() const override {
   }
   void Print_AST() override {
     std::cout << "LValAST:" << std::endl;
     std::cout << "IDENT: " << ident << std::endl;
+    if (exp){
+      exp->Print_AST();
+    }
+    if(bracket){
+      bracket->Print_AST();
+    }
   }
   void Semantic_Analysis() override{
     // undefinition
@@ -770,6 +894,12 @@ class LValAST : public BaseAST{
     }else if(symbol_table.symbol_map.find(ident) == symbol_table.symbol_map.end()){
       std::cout << "Error: undefined global variable " << ident << "." << std::endl;
       exit(1);
+    }
+    if (exp){
+      exp->Semantic_Analysis();
+    }
+    if(bracket){
+      bracket->Semantic_Analysis();
     }
   }
 };
