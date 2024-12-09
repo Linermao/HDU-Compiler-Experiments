@@ -39,8 +39,8 @@ Identifier    [a-zA-Z_][a-zA-Z0-9_]*
 
 /* 整数字面量 */
 Decimal       [1-9][0-9]*
-Octal         0[0-7]*
 Hexadecimal   0[xX][a-zA-Z0-9]+
+Octal         0[a-zA-Z0-9]*
 
 %%
 
@@ -84,16 +84,6 @@ Hexadecimal   0[xX][a-zA-Z0-9]+
 {Identifier}    { yylval.str_val = new string(yytext); print_token("IDENT", yytext); return IDENT; }
 
 {Decimal}       { yylval.int_val = strtol(yytext, nullptr, 0); print_token("INT_CONST", to_string(yylval.int_val)); return INT_CONST; }
-{Octal}         { 
-                    for (int i=0; i<strlen(yytext); i++) {
-                        if (yytext[i] > '7' || yytext[i] < '0') {
-                            print_error("Invalid octal number", yytext);
-                        }
-                    }
-                    yylval.int_val = strtol(yytext, nullptr, 0); 
-                    print_token("INT_CONST(Octal)", to_string(yylval.int_val)); 
-                    return INT_CONST; 
-                }
 {Hexadecimal}   { 
                     for (int i=2; i<strlen(yytext); i++) {
                         if (!isxdigit(yytext[i])) {
@@ -104,6 +94,17 @@ Hexadecimal   0[xX][a-zA-Z0-9]+
                     print_token("INT_CONST(Hexadecimal)", to_string(yylval.int_val)); 
                     return INT_CONST; 
                 }
+{Octal}         { 
+                    for (int i=0; i<strlen(yytext); i++) {
+                        if (yytext[i] > '7' || yytext[i] < '0') {
+                            print_error("Invalid octal number", yytext);
+                        }
+                    }
+                    yylval.int_val = strtol(yytext, nullptr, 0); 
+                    print_token("INT_CONST(Octal)", to_string(yylval.int_val)); 
+                    return INT_CONST; 
+                }
+
 
 .               {   
                     print_error("Invalid characterat", &yytext[0]); 
