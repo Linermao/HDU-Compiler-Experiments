@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+extern int yylineno;
+
 typedef struct{
   int type;
   int value;
@@ -152,7 +154,7 @@ class FuncDefAST_ : public BaseAST {
   void Semantic_Analysis() override{
     // redefinition check
     if (symbol_table.func_symbol_map.find(ident) != symbol_table.func_symbol_map.end()){
-      std::cout << "Error: redefinition of function " << ident << std::endl;
+      std::cout << "Error: type B redefinition of function " << ident << " at line: " << yylineno << std::endl;
       exit(1);
     }
 
@@ -498,7 +500,7 @@ class VarDefAST : public BaseAST{
     // redefinition
     if (current_func_symbol_table == NULL){
       if (symbol_table.symbol_map.find(ident) != symbol_table.symbol_map.end()){
-        std::cout << "Error: redefinition of global variable " << ident << std::endl;
+        std::cout << "Error: type B redefinition of global variable " << ident << " at line: " << yylineno << std::endl;
         exit(1);
       }
 
@@ -509,7 +511,7 @@ class VarDefAST : public BaseAST{
       }
     }else {
       if (current_func_symbol_table->nameset.count(ident + std::string("_") + std::to_string(current_func_symbol_table->depth)) != 0){
-        std::cout << "Error: redefinition of variable " << ident << std::endl;
+        std::cout << "Error: type B redefinition of variable " << ident << " at line: " << yylineno << std::endl;
         exit(1);
       }
 
@@ -886,15 +888,21 @@ class LValAST : public BaseAST{
       // for i int vector symbol_map
       if (current_func_symbol_table->symbol_maps[1].find(ident) == current_func_symbol_table->symbol_maps[1].end()
           && symbol_table.symbol_map.find(ident) == symbol_table.symbol_map.end()){
-        std::cout << "Error: undefined variable " << ident << "." << std::endl;
+        // use func as var
+        if (symbol_table.func_symbol_map.find(ident) != symbol_table.func_symbol_map.end()){
+          std::cout << "Error: type C use func as var: " << ident << " at line: " << yylineno << "." << std::endl;
+          exit(1);
+        }    
+        std::cout << "Error: type A undefined variable " << ident << " at line: " << yylineno << "." << std::endl;
         exit(1);
       }else {
         return;
       }
     }else if(symbol_table.symbol_map.find(ident) == symbol_table.symbol_map.end()){
-      std::cout << "Error: undefined global variable " << ident << "." << std::endl;
+      std::cout << "Error: type A undefined global variable " << ident << " at line: " << yylineno << "." << std::endl;
       exit(1);
     }
+
     if (exp){
       exp->Semantic_Analysis();
     }
@@ -998,7 +1006,21 @@ class UnaryExpAST : public BaseAST{
     // undefiniton check
     if (ident != ""){
       if (symbol_table.func_symbol_map.find(ident) == symbol_table.func_symbol_map.end()){
-        std::cout << "Error: undefiniton of function " << ident << "." << std::endl;
+        // use var as func
+        if(current_func_symbol_table){
+          if (current_func_symbol_table->symbol_maps[1].find(ident) != current_func_symbol_table->symbol_maps[1].end()
+              || symbol_table.symbol_map.find(ident) != symbol_table.symbol_map.end()){
+            std::cout << "Error: type C use var as func: " << ident << " at line: " << yylineno << "." << std::endl;
+            exit(1);
+          }
+        }else {
+          if (symbol_table.symbol_map.find(ident) != symbol_table.symbol_map.end()){
+            std::cout << "Error: type C use var as func: " << ident << " at line: " << yylineno << "." << std::endl;
+            exit(1);
+          }
+        }
+        
+        std::cout << "Error: type A undefiniton of function " << ident << " at line: " << yylineno << "." << std::endl;
         exit(1);
       }    
     }

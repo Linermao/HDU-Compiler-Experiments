@@ -1,0 +1,32 @@
+CompUnitAST:
+CompUnitsAST:
+FuncDefOrVarDeclAST:
+FuncDefAST: 
+TYPE: int
+IDENT: main
+BlockAST:
+BlockItemAST:
+DeclAST:
+VarDeclAST:
+BTypeAST:
+TYPE: int
+VarDefAST:
+IDENT: a
+VarDefAST:
+IDENT: b
+VarDefAST:
+IDENT: c
+VarDefAST:
+IDENT: d
+BlockItemAST:
+StmtAST:
+ExpAST:
+LOrExpAST:
+LAndExpAST:
+EqExpAST:
+RelExpAST:
+AddExpAST:
+MulExpAST:
+UnaryExpAST
+PrimaryExpAST:
+INT_CONST: 1

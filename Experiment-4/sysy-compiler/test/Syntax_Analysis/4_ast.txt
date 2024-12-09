@@ -1,0 +1,62 @@
+CompUnitAST:
+CompUnitsAST:
+FuncDefOrVarDeclAST:
+FuncDefAST: 
+TYPE: int
+IDENT: main
+BlockAST:
+BlockItemAST:
+DeclAST:
+VarDeclAST:
+BTypeAST:
+TYPE: int
+VarDefAST:
+IDENT: a
+BracketAST:
+ConstExpAST:
+ExpAST:
+LOrExpAST:
+LAndExpAST:
+EqExpAST:
+RelExpAST:
+AddExpAST:
+MulExpAST:
+UnaryExpAST
+PrimaryExpAST:
+INT_CONST: 2
+InitValAST:
+BraceAST:
+ConstInitValAST:
+ConstExpAST:
+ExpAST:
+LOrExpAST:
+LAndExpAST:
+EqExpAST:
+RelExpAST:
+AddExpAST:
+MulExpAST:
+UnaryExpAST
+PrimaryExpAST:
+INT_CONST: 1
+ExpAST:
+LOrExpAST:
+LAndExpAST:
+EqExpAST:
+RelExpAST:
+AddExpAST:
+MulExpAST:
+UnaryExpAST
+PrimaryExpAST:
+INT_CONST: 2
+BlockItemAST:
+StmtAST:
+ExpAST:
+LOrExpAST:
+LAndExpAST:
+EqExpAST:
+RelExpAST:
+AddExpAST:
+MulExpAST:
+UnaryExpAST
+PrimaryExpAST:
+INT_CONST: 1
