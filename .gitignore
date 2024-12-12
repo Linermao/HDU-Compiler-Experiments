@@ -16,8 +16,7 @@ user/usys.S
 .gdbinit
 .cache/
 .vscode/
-.DS_Store
-Compiler-for-SysY/
+*.DS_Store
+/build
 ignore/
-sysy-compiler-pku2022-spring/
 *.koopa
