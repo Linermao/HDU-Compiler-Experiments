@@ -1,36 +1,68 @@
-CompUnitAST:
-CompUnitsAST:
-FuncDefOrVarDeclAST:
-FuncDefAST: 
-TYPE: int
-IDENT: f
-FuncFParamsAST:
-FuncFParamAST:
-BTypeAST:
-TYPE: int
-IDENT: a
-BracketAST:
-ConstExpAST:
-ExpAST:
-LOrExpAST:
-LAndExpAST:
-EqExpAST:
-RelExpAST:
-AddExpAST:
-MulExpAST:
-UnaryExpAST
-PrimaryExpAST:
-INT_CONST: 1
-BlockAST:
-BlockItemAST:
-StmtAST:
-ExpAST:
-LOrExpAST:
-LAndExpAST:
-EqExpAST:
-RelExpAST:
-AddExpAST:
-MulExpAST:
-UnaryExpAST
-PrimaryExpAST:
-INT_CONST: 0
+CompUnitAST {
+  CompUnitsAST {
+    FuncDefOrVarDeclAST {
+      FuncDefAST { 
+      TYPE: int
+      IDENT: main
+        BlockAST {
+          BlockItemAST {
+            DeclAST {
+              VarDeclAST {
+                BTypeAST {
+                TYPE: int
+                }
+                VarDefAST { 
+                IDENT: a
+                  InitValAST {
+                    ExpAST {
+                      LOrExpAST {
+                        LAndExpAST {
+                          EqExpAST {
+                            RelExpAST {
+                              AddExpAST {
+                                MulExpAST {
+                                  UnaryExpAST {
+                                    PrimaryExpAST {
+                                      INT_CONST: 1
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            BlockItemAST {
+              StmtAST {
+                ExpAST {
+                  LOrExpAST {
+                    LAndExpAST {
+                      EqExpAST {
+                        RelExpAST {
+                          AddExpAST {
+                            MulExpAST {
+                              UnaryExpAST {
+                                PrimaryExpAST {
+                                  INT_CONST: 0
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

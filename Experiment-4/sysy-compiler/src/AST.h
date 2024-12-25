@@ -44,6 +44,8 @@ static SymbolTable symbol_table;
 static func_symbol* current_func_symbol_table = NULL;
 static std::string current_func_name = "";
 
+static int identDepth = 0;
+
 // 所有 AST 的基类
 class BaseAST {
  public:
@@ -68,8 +70,14 @@ public:
       }
 	}
   void Print_AST() override {
-		std::cout << "CompUnitAST:" << std::endl;
+    // ident depth
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+		std::cout << "CompUnitAST {" << std::endl;
     comp_units->Print_AST();
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override {
     comp_units->Semantic_Analysis();
@@ -98,7 +106,9 @@ public:
     }
 	}
   void Print_AST() override {
-		std::cout << "CompUnitsAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+		std::cout << "CompUnitsAST {" << std::endl;
     if(comp_units){
       comp_units->Print_AST();
     }
@@ -110,7 +120,10 @@ public:
     }
     if (func_def){
       func_def->Print_AST();
-    }
+    }    
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
 	}
   void Semantic_Analysis() override {
     if(comp_units){
@@ -143,13 +156,20 @@ class FuncDefAST_ : public BaseAST {
     block->Dump();
   }
   void Print_AST() override {
-    std::cout << "FuncDefAST: " << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    std::cout << "FuncDefAST { " << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
     std::cout << "TYPE: " << func_type << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
     std::cout << "IDENT: " << ident << std::endl;
+    identDepth ++;
     if(func_f_params){
       func_f_params->Print_AST();
     }
     block->Print_AST();
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     // redefinition check
@@ -184,8 +204,12 @@ class BTypeAST : public BaseAST{
   void Dump() const override {
   }
   void Print_AST() override {
-    std::cout << "BTypeAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    std::cout << "BTypeAST {" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
     std::cout << "TYPE: " << type << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
 };
 
@@ -207,7 +231,9 @@ class FuncDefOrVarDeclAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "FuncDefOrVarDeclAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "FuncDefOrVarDeclAST {" << std::endl;
     if (func_def){
       ((FuncDefAST_ *) func_def.get())->func_type = ((BTypeAST *) b_type.get())->type;
       func_def->Print_AST();
@@ -215,6 +241,9 @@ class FuncDefOrVarDeclAST : public BaseAST{
     if (var_decl){
       var_decl->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override {
     if (func_def){
@@ -241,13 +270,18 @@ class DeclAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "DeclAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "DeclAST {" << std::endl;
     if (const_decl){
       const_decl->Print_AST();
     }
     if (var_decl){
       var_decl->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override {
     if (const_decl){
@@ -269,9 +303,14 @@ class ConstDeclAST : public BaseAST{
     const_def->Dump();
   }
   void Print_AST() override {
-    std::cout << "ConstDeclAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "ConstDeclAST {" << std::endl;
     b_type->Print_AST();
     const_def->Print_AST();
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override {
     b_type->Semantic_Analysis();
@@ -297,8 +336,11 @@ class ConstDefAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "ConstDefAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    std::cout << "ConstDefAST {" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
     std::cout << "IDENT: " << ident << std::endl;
+    identDepth ++;
     if(bracket){
       bracket->Print_AST();
     }
@@ -306,6 +348,9 @@ class ConstDefAST : public BaseAST{
     if (const_def){
       const_def->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override {
     const_init_val->Semantic_Analysis();
@@ -332,13 +377,18 @@ class BracketAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "BracketAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "BracketAST {" << std::endl;
     if (const_exp){
       const_exp->Print_AST();
     }
     if (bracket){
       bracket->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override {
     if (const_exp){
@@ -360,13 +410,18 @@ class ConstInitValAST : public BaseAST{
     const_exp->Dump();
   }
   void Print_AST() override {
-    std::cout << "ConstInitValAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "ConstInitValAST {" << std::endl;
     if(const_exp){
       const_exp->Print_AST();
     }
     if(brace){
       brace->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     if(const_exp){
@@ -387,13 +442,18 @@ class BraceAST : public BaseAST{
     const_init_val->Dump();
   }
   void Print_AST() override {
-    std::cout << "BraceAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "BraceAST {" << std::endl;
     if (const_init_val){
       const_init_val->Print_AST();
     }
     if(brace){
       brace->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override {
     if (const_init_val){
@@ -415,11 +475,16 @@ class ConstExpAST : public BaseAST{
     exp->Dump();
   }
   void Print_AST() override {
-    std::cout << "ConstExpAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "ConstExpAST {" << std::endl;
     exp->Print_AST();
     if(const_exp){
       const_exp->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     exp->Semantic_Analysis();
@@ -443,9 +508,14 @@ class VarDeclAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "VarDeclAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "VarDeclAST {" << std::endl;
     b_type->Print_AST();
     var_def->Print_AST();
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override {
     b_type->Semantic_Analysis();
@@ -461,8 +531,13 @@ class VarDeclAST_ : public BaseAST{
     var_def->Dump();
   }
   void Print_AST() override {
-    std::cout << "VarDeclAST_:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "VarDeclAST_ {" << std::endl;
     var_def->Print_AST();
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     var_def->Semantic_Analysis();
@@ -484,8 +559,11 @@ class VarDefAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "VarDefAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    std::cout << "VarDefAST { " << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
     std::cout << "IDENT: " << ident << std::endl;
+    identDepth ++;
     if(bracket){
       bracket->Print_AST();
     }
@@ -495,6 +573,9 @@ class VarDefAST : public BaseAST{
     if (var_def){
       var_def->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     // redefinition
@@ -545,13 +626,18 @@ class InitValAST : public BaseAST{
     exp->Dump();
   }
   void Print_AST() override {
-    std::cout << "InitValAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "InitValAST {" << std::endl;
     if(exp){
       exp->Print_AST();
     }
     if(brace){
       brace->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     if (exp){
@@ -579,13 +665,21 @@ class FuncDefAST : public BaseAST {
     block->Dump();
   }
   void Print_AST() override {
-    std::cout << "FuncDefAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "FuncDefAST {" << std::endl;
     func_type->Print_AST();
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
     std::cout << "IDENT:" << ident << std::endl;
+    identDepth ++;
     if(func_f_params){
       func_f_params->Print_AST();
     }
     block->Print_AST();
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override {
     func_type->Semantic_Analysis();
@@ -601,8 +695,13 @@ class FuncTypeAST : public BaseAST{
   public:
     std::string type;
   void Print_AST() override {
-    std::cout << "FunctypeAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "FunctypeAST {" << std::endl;
     std::cout << type;
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
 
 };
@@ -615,8 +714,13 @@ class FuncFParamsAST : public BaseAST{
     func_f_param->Dump();
   }
   void Print_AST() override {
-    std::cout << "FuncFParamsAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "FuncFParamsAST {" << std::endl;
     func_f_param->Print_AST();
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     func_f_param->Semantic_Analysis();
@@ -638,15 +742,23 @@ class FuncFParamAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "FuncFParamAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "FuncFParamAST {" << std::endl;
     b_type->Print_AST();
+    identDepth--;
+    std::cout << std::string(2*identDepth, ' ');
     std::cout << "IDENT: " << ident << std::endl;
+    identDepth ++;
     if(bracket){
       bracket->Print_AST();
     }
     if (func_f_param){
       func_f_param->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     b_type->Semantic_Analysis();
@@ -668,8 +780,13 @@ class BlockAST : public BaseAST{
     blockitem->Dump();
   }
   void Print_AST() override {
-    std::cout << "BlockAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "BlockAST {" << std::endl;
     blockitem->Print_AST();
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     current_func_symbol_table->depth++;
@@ -699,7 +816,9 @@ class BlockItemAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "BlockItemAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "BlockItemAST {" << std::endl;
     if (decl){
       decl->Print_AST();
     }
@@ -709,6 +828,9 @@ class BlockItemAST : public BaseAST{
     if (block_item){
       block_item->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     if (decl){
@@ -772,7 +894,9 @@ class StmtAST : public BaseAST{
   }
 
   void Print_AST() override{
-    std::cout << "StmtAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "StmtAST {" << std::endl;
     if (symbol == "if"){
       if(stmt_2){
         exp->Print_AST();
@@ -799,6 +923,9 @@ class StmtAST : public BaseAST{
     }else if(exp){
       exp->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     if (symbol == "if"){
@@ -845,13 +972,18 @@ class ExpAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "ExpAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "ExpAST {" << std::endl;
     if (l_or_exp){
       l_or_exp->Print_AST();
     }
     if (exp){
       exp->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     if (l_or_exp){
@@ -873,14 +1005,19 @@ class LValAST : public BaseAST{
   void Dump() const override {
   }
   void Print_AST() override {
-    std::cout << "LValAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    std::cout << "LValAST { " << std::endl;
     std::cout << "IDENT: " << ident << std::endl;
+    identDepth ++;
     if (exp){
       exp->Print_AST();
     }
     if(bracket){
       bracket->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     // undefinition
@@ -930,7 +1067,9 @@ class PrimaryExpAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "PrimaryExpAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "PrimaryExpAST {" << std::endl;
     if (exp){
       exp->Print_AST();
     }
@@ -940,6 +1079,9 @@ class PrimaryExpAST : public BaseAST{
     if (l_val) {
       l_val->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     if (exp){
@@ -961,6 +1103,7 @@ class NumberAST : public BaseAST{
   void Dump() const override {
   }
   void Print_AST() override {
+    std::cout << std::string(2*identDepth, ' ');
     std::cout << "INT_CONST: " << number << std::endl;
   }
 };
@@ -988,7 +1131,9 @@ class UnaryExpAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "UnaryExpAST" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "UnaryExpAST {" << std::endl;
     if (primary_exp){
       primary_exp->Print_AST();
     }
@@ -996,11 +1141,17 @@ class UnaryExpAST : public BaseAST{
       unary_exp->Print_AST();
     }
     if (ident != ""){
+      identDepth --;
+      std::cout << std::string(2*identDepth, ' ');
       std::cout << "IDENT: " << ident << std::endl;
+      identDepth ++;
     }
     if (func_r_params) {
       func_r_params->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override {
     // undefiniton check
@@ -1053,8 +1204,13 @@ class FuncRParamsAST : public BaseAST{
     exp->Dump();
   }
   void Print_AST() override {
-    std::cout << "FuncRParamsAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "FuncRParamsAST {" << std::endl;
     exp->Print_AST();
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     exp->Semantic_Analysis();
@@ -1077,7 +1233,9 @@ class MulExpAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "MulExpAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "MulExpAST {" << std::endl;
     if (mul_exp){
       mul_exp->Print_AST();
       unary_exp->Print_AST();
@@ -1085,6 +1243,9 @@ class MulExpAST : public BaseAST{
     else if(unary_exp){
       unary_exp->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     if (mul_exp){
@@ -1113,7 +1274,9 @@ class AddExpAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "AddExpAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "AddExpAST {" << std::endl;
     if (add_exp){      
         add_exp->Print_AST();
         mul_exp->Print_AST();
@@ -1121,6 +1284,9 @@ class AddExpAST : public BaseAST{
     else if (mul_exp){
       mul_exp->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     if (add_exp){
@@ -1149,7 +1315,9 @@ class RelExpAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "RelExpAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "RelExpAST {" << std::endl;
     if (rel_exp){
       rel_exp->Print_AST();
       add_exp->Print_AST();
@@ -1157,6 +1325,9 @@ class RelExpAST : public BaseAST{
     else if(add_exp){
       add_exp->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     if (rel_exp){
@@ -1185,7 +1356,9 @@ class EqExpAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "EqExpAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "EqExpAST {" << std::endl;
     if (eq_exp){
       eq_exp->Print_AST();
       rel_exp->Print_AST();
@@ -1193,6 +1366,9 @@ class EqExpAST : public BaseAST{
     else if(rel_exp){
       rel_exp->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     if (eq_exp){
@@ -1220,13 +1396,18 @@ class LAndExpAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "LAndExpAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "LAndExpAST {" << std::endl;
     if (l_and_exp){
       l_and_exp->Print_AST();
       eq_exp->Print_AST();
     } else if(eq_exp){
       eq_exp->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }  
   void Semantic_Analysis() override {
     if (l_and_exp){
@@ -1254,13 +1435,18 @@ class LOrExpAST : public BaseAST{
     }
   }
   void Print_AST() override {
-    std::cout << "LOrExpAST:" << std::endl;
+    std::cout << std::string(2*identDepth, ' ');
+    identDepth ++;
+    std::cout << "LOrExpAST {" << std::endl;
     if (l_or_exp){
       l_or_exp->Print_AST();
       l_and_exp->Print_AST();
     } else if(l_and_exp){
       l_and_exp->Print_AST();
     }
+    identDepth --;
+    std::cout << std::string(2*identDepth, ' ');
+		std::cout << "}" << std::endl;
   }
   void Semantic_Analysis() override{
     if (l_or_exp){

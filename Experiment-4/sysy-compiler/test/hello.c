@@ -1,6 +1,5 @@
-int a = 1;
 
 int main (){
-    int g = a();
+    int a = 1;
     return 0;
 }
